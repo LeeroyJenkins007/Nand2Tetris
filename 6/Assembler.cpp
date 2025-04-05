@@ -14,8 +14,9 @@ int main(int argc, char* argv[]){
         std::cout << "File Name: " << argv[1] << std::endl;
     }
 
-    std::string outFile = argv[1];
-    outFile = outFile.substr(0, outFile.find(".")) + ".hack";
+    std::string outFile(argv[1]);
+    outFile = outFile.substr(0, outFile.find_last_of('.')) + ".hack";
+    std::cout << outFile << std::endl;
     std::ofstream binFile(outFile);
     
     Parser parser = Parser(argv[1]);

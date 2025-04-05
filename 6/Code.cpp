@@ -28,7 +28,7 @@ std::string Code::dest(std::string destField){
     return destBinary;
 }
 
-std::string Code::comp(std::string compField){
+std::string Code::comp(const std::string& compField){
     std::string compBinary;
 
     if(compField == "0"){

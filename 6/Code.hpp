@@ -5,7 +5,7 @@
 
 namespace Code{
     std::string dest(std::string);
-    std::string comp(std::string);
+    std::string comp(const std::string&);
     std::string jump(std::string);
 } //namespace Code
 

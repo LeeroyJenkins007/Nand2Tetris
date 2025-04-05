@@ -2,6 +2,7 @@
 #define PARSER_HPP
 
 #include <fstream>
+#include <algorithm>
 
 #include "Code.hpp"
 
@@ -26,6 +27,7 @@ class Parser{
         std::string jump();
     private:
         std::string num2binary(const std::string& numStr);
+        bool isCommentOrSpace(const std::string&);
 };
 
 #endif //PARSER_HPP

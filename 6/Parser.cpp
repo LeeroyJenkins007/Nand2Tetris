@@ -14,6 +14,15 @@ bool Parser::hasMoreCommands(){
 }
 
 
+bool Parser::isCommentOrSpace(const std::string& str){
+    if (str.empty() || (str.at(0) == ' ') || (str.at(0) == '\r') || (str.at(0) == '/') || (str.at(0) == '\n')){
+        std::cout << "Is Comment or Space\n";
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /*
 *
 */
@@ -22,7 +31,7 @@ void Parser::advance(){
         if(asmFile.is_open()){
             std::getline(asmFile, currentCommand);
             std::cout << "Current Line: " << currentCommand << std::endl;
-            while ((currentCommand.empty() || !currentCommand.find('/')) && hasMoreCommands()){
+            while (isCommentOrSpace(currentCommand) && hasMoreCommands()){
                 std::getline(asmFile, currentCommand);
                 std::cout << "Current Line: " << currentCommand << std::endl;
             }      
@@ -105,16 +114,26 @@ std::string Parser::dest()
 std::string Parser::comp()
 {
     std::string sub;
-    auto dest_idx = currentCommand.find('=');
-    if(dest_idx == currentCommand.npos){
-        dest_idx = 0;
-    } else{
-        dest_idx++;
-    }
-    auto jump_idx = currentCommand.find(';');
-    sub = currentCommand.substr(dest_idx, jump_idx - dest_idx);
+    
+    currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
+        return c == '\r' || c == '\n';
+    }), currentCommand.end());
 
-    std::cout << "Comp Sub: " << sub << std::endl;
+    auto eq_idx = currentCommand.find('=');
+    auto sc_idx = currentCommand.find(';');
+
+    size_t start = (eq_idx != currentCommand.npos) ? eq_idx + 1 : 0;
+    size_t end = (sc_idx != currentCommand.npos) ? sc_idx : currentCommand.length();
+
+    //std::cout << "start Idx: " << dest_idx << "\t end Idx: " << jump_idx - dest_idx << std::endl;
+    sub = currentCommand.substr(start, end);
+
+    for(char c : sub){
+        std::cout << "Char: '" << c << "' ASCII: " << static_cast<int>(c) << std::endl;
+    }
+    std::cout << "Length: " << sub.length() << std::endl;
+    std::cout << "Comp Sub: [" << sub  << "]" << std::endl;
+
     return Code::comp(sub);
 }
 
@@ -149,7 +168,6 @@ std::string Parser::num2binary(const std::string &numStr)
         num /= 2;
         pos--;
     }
-    //std::reverse(binary.begin(), binary.end());
 
     return binary;
 }
