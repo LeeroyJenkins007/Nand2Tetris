@@ -43,6 +43,9 @@ void Parser::advance(){
         return;
     }
 
+    currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
+        return c == '\r' || c == '\n' || c == ' ';
+    }), currentCommand.end());
     std::cout << "Current COMMAND: " << currentCommand << std::endl;
 }
 
@@ -146,13 +149,17 @@ std::string Parser::jump()
 {
     std::string sub;
 
-    auto idx = currentCommand.find(';');
-    if(idx != currentCommand.npos){
-        sub = currentCommand.substr(idx);
+    auto sc_idx = currentCommand.find(';');
+    if(sc_idx != currentCommand.npos){
+        sub = currentCommand.substr(sc_idx+1);
     } else {
         sub = "";
     }
 
+    for(char c : sub){
+        std::cout << "Char: '" << c << "' ASCII: " << static_cast<int>(c) << std::endl;
+    }
+    std::cout << "Length: " << sub.length() << std::endl;
     std::cout << "Jump Sub: " << sub << std::endl;
     return Code::jump(sub);
 }
