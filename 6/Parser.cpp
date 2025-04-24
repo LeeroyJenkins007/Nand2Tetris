@@ -5,18 +5,30 @@ Parser::Parser(const char* inFile){
     std::cout << "Parser Created!" << std::endl;
 }
 
-
+void Parser::reset(){
+    asmFile.clear();
+    asmFile.seekg(0, std::ios::beg);
+    std::cout << "Parser file reset\n";
+}
 /*
-*   Are there mroe commands in the input?
+*   Are there more commands in the input?
 */
 bool Parser::hasMoreCommands(){
-    return !asmFile.eof();
+    bool moreCommands = false;
+
+    if (asmFile.eof()){
+        std::cout << "No more commands!" << std::endl;
+    }else{
+        std::cout << "Has more commands" << std::endl;
+        moreCommands = true;
+    }
+    return moreCommands;
 }
 
 
-bool Parser::isCommentOrSpace(const std::string& str){
-    if (str.empty() || (str.at(0) == ' ') || (str.at(0) == '\r') || (str.at(0) == '/') || (str.at(0) == '\n')){
-        std::cout << "Is Comment or Space\n";
+bool Parser::isComment(const std::string& str){
+    if (str.at(0) == '/'){
+        std::cout << "Is Comment\n";
         return true;
     } else {
         return false;
@@ -27,25 +39,35 @@ bool Parser::isCommentOrSpace(const std::string& str){
 *
 */
 void Parser::advance(){
-    if (hasMoreCommands()){
-        if(asmFile.is_open()){
-            std::getline(asmFile, currentCommand);
-            std::cout << "Current Line: " << currentCommand << std::endl;
-            while (isCommentOrSpace(currentCommand) && hasMoreCommands()){
+    bool isCommand = false;
+
+    if(asmFile.is_open()){
+        while(!isCommand){
+            if (hasMoreCommands()){
+                
                 std::getline(asmFile, currentCommand);
-                std::cout << "Current Line: " << currentCommand << std::endl;
-            }      
-        } else{
-            std::cerr << "Failed to read file." << std::endl;
+                std::cout << "Current Line[" << currentCommand << "]" << std::endl;
+                currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
+                    return c == '\r' || c == '\n' || c == ' ';
+                }), currentCommand.end());
+                std::cout << "Clean Line[" << currentCommand << "]" << std::endl;
+                std::cout << "Is Empty? " << currentCommand.empty() << std::endl;
+                if(currentCommand.empty() || isComment(currentCommand)){
+                    isCommand = false;
+                    std::cout << "Is not a command\n";
+                }else{
+                    isCommand = true;
+                    std::cout << "is a command\n";
+                }
+            }else{
+                return;
+            }
         }
-    } else {
-        std::cout << "There are no more commands." << std::endl;
-        return;
+    } else{
+        std::cerr << "Failed to read file." << std::endl;
     }
 
-    currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
-        return c == '\r' || c == '\n' || c == ' ';
-    }), currentCommand.end());
+    
     std::cout << "Current COMMAND: " << currentCommand << std::endl;
 }
 
@@ -77,16 +99,19 @@ CMD_TYPE Parser::instructionType()
 */
 std::string Parser::symbol()
 {   
-    std::string symBinary = "0";
+    std::string symStr = "0";
 
     char initChar = currentCommand.at(0);
-    if(initChar == '@'){
-        symBinary += num2binary(currentCommand.substr(1));
-    } else {
-        symBinary += num2binary(currentCommand.substr(1, 14));
+    if(instructionType() == A_COMMAND){
+        symStr = currentCommand.substr(1);
+        //symBinary += num2binary(currentCommand.substr(1));
+    } else if (instructionType() == L_COMMAND){
+        std::cout << "symbol size: " << currentCommand.size() << std::endl;
+        symStr = currentCommand.substr(1, currentCommand.size() - 2);
+        //num2binary(currentCommand.substr(1, 14));
     }
     
-    return symBinary;
+    return symStr;
 }
 
 
@@ -118,9 +143,9 @@ std::string Parser::comp()
 {
     std::string sub;
     
-    currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
-        return c == '\r' || c == '\n';
-    }), currentCommand.end());
+    //currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
+    //    return c == '\r' || c == '\n';
+    //}), currentCommand.end());
 
     auto eq_idx = currentCommand.find('=');
     auto sc_idx = currentCommand.find(';');
@@ -162,19 +187,4 @@ std::string Parser::jump()
     std::cout << "Length: " << sub.length() << std::endl;
     std::cout << "Jump Sub: " << sub << std::endl;
     return Code::jump(sub);
-}
-
-std::string Parser::num2binary(const std::string &numStr)
-{
-    int num = std::stoi(numStr);
-    int pos = 14;
-    std::string binary = "000000000000000";
-    
-    while (num > 0){
-        binary[pos] = (num % 2 == 0 ? '0' : '1');
-        num /= 2;
-        pos--;
-    }
-
-    return binary;
 }

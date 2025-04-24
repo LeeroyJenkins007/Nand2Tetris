@@ -18,6 +18,7 @@ class Parser{
         std::string currentCommand;
     public:
         Parser(const char*);
+        void reset();
         bool hasMoreCommands();
         void advance();
         CMD_TYPE instructionType();
@@ -26,8 +27,7 @@ class Parser{
         std::string comp();
         std::string jump();
     private:
-        std::string num2binary(const std::string& numStr);
-        bool isCommentOrSpace(const std::string&);
+        bool isComment(const std::string&);
 };
 
 #endif //PARSER_HPP
