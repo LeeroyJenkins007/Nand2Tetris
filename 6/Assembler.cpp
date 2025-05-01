@@ -62,9 +62,14 @@ int main(int argc, char* argv[]){
             binCommand = "0";
             std::string symStr = parser.symbol();
             if(symbolTable.contains(symStr)){
+                std::cout << "SymbolTable Has\n";
                 binCommand += num2string(std::to_string(symbolTable.getAddress(symStr)));
-            }else{
+            }else if(isdigit(symStr[0])){
+                std::cout << "A COM: Digit\n";
+                std::cout << "Not in Symbol Table\n";
                 binCommand += num2string(parser.symbol());
+            }else{
+                symbolTable.addEntity(symStr);
             }
 
             binFile << binCommand << std::endl;
@@ -85,6 +90,7 @@ int main(int argc, char* argv[]){
             //    symAddress = std::to_string(symbolTable.getAddress(sym));
             //}
             //binCommand = "0";
+            continue;
         }
 
         //binFile << binCommand << std::endl;

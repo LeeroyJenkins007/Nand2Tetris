@@ -104,6 +104,7 @@ std::string Parser::symbol()
     char initChar = currentCommand.at(0);
     if(instructionType() == A_COMMAND){
         symStr = currentCommand.substr(1);
+        
         //symBinary += num2binary(currentCommand.substr(1));
     } else if (instructionType() == L_COMMAND){
         std::cout << "symbol size: " << currentCommand.size() << std::endl;
