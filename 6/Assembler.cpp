@@ -70,6 +70,7 @@ int main(int argc, char* argv[]){
                 binCommand += num2string(parser.symbol());
             }else{
                 symbolTable.addEntity(symStr);
+                binCommand += num2string(std::to_string(symbolTable.getAddress(symStr)));
             }
 
             binFile << binCommand << std::endl;
@@ -90,7 +91,7 @@ int main(int argc, char* argv[]){
             //    symAddress = std::to_string(symbolTable.getAddress(sym));
             //}
             //binCommand = "0";
-            continue;
+            //continue;
         }
 
         //binFile << binCommand << std::endl;
