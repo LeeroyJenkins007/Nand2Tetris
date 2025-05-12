@@ -50,8 +50,12 @@ int main(int argc, char* argv[]){
     
     //second pass
     std::cout << "Second Pass\n";
-    parser.advance();
+    //parser.advance();
     while(parser.hasMoreCommands()){
+        parser.advance();
+        //if(!parser.hasMoreCommands()){
+        //    break;
+        //}
         std::cout << "pass" << std::endl;
 
         std::string binCommand;
@@ -95,7 +99,7 @@ int main(int argc, char* argv[]){
         }
 
         //binFile << binCommand << std::endl;
-        parser.advance();
+        //parser.advance();
     }
 
     
