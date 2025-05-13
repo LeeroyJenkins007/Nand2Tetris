@@ -13,18 +13,37 @@ void Parser::reset(){
 /*
 *   Are there more commands in the input?
 */
+//bool Parser::hasMoreCommands(){
+//    bool moreCommands = false;
+//
+//    if (asmFile.eof()){
+//        std::cout << "No more commands!" << std::endl;
+//    }else{
+//        std::cout << "Has more commands" << std::endl;
+//        moreCommands = true;
+//    }
+//    return moreCommands;
+//}
 bool Parser::hasMoreCommands(){
-    bool moreCommands = false;
+    std::streampos originalPos = asmFile.tellg();
+    std::string line;
 
-    if (asmFile.eof()){
-        std::cout << "No more commands!" << std::endl;
-    }else{
-        std::cout << "Has more commands" << std::endl;
-        moreCommands = true;
+    while(std::getline(asmFile, line)){
+        trim(line);
+        if (!line.empty() && line[0] != '/'){
+            asmFile.seekg(originalPos); //put the streampos back
+            return true;
+        }
+        originalPos = asmFile.tellg(); //otherwise update streampos to current line, this repeats until the next line is a command or EOF
     }
-    return moreCommands;
+    return false;
 }
 
+void Parser::trim(std::string& s){
+    s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char c) {
+                    return c == '\r' || c == '\n' || c == '\t' || c == ' ';
+                }), s.end());
+}
 
 bool Parser::isComment(const std::string& str){
     if (str.at(0) == '/'){

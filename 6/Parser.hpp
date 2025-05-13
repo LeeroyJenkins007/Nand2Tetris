@@ -28,6 +28,7 @@ class Parser{
         std::string jump();
     private:
         bool isComment(const std::string&);
+        static void trim(std::string&);
 };
 
 #endif //PARSER_HPP
