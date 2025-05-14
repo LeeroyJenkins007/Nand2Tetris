@@ -2,6 +2,7 @@
 #include <cassert>
 #include <fstream>
 
+#include "debug_util.hpp"
 #include "Parser.hpp"
 #include "SymbolTable.hpp"
 
@@ -15,12 +16,12 @@ int main(int argc, char* argv[]){
         std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
         return 1;
     }else{
-        std::cout << "File Name: " << argv[1] << std::endl;
+        std::cout << "Input: " << argv[1] << std::endl;
     }
 
     std::string outFile(argv[1]);
     outFile = outFile.substr(0, outFile.find_last_of('.')) + ".hack";
-    std::cout << outFile << std::endl;
+    std::cout << "Output: " << outFile << std::endl;
     std::ofstream binFile(outFile);
     
     SymbolTable symbolTable;
@@ -28,49 +29,50 @@ int main(int argc, char* argv[]){
     
     Parser parser = Parser(argv[1]);
     //first pass
-    std::cout << "First Pass\n";
+    DEBUG_PRINT("First Pass")
+    //std::cout << "First Pass\n";
     int line = 0;
     while(parser.hasMoreCommands()){
         parser.advance();
-        //probably should check for eof here
-        if(!parser.hasMoreCommands()){
-            break;
-        }
+
         CMD_TYPE cmd = parser.instructionType();
         if (cmd == L_COMMAND){
-            std::cout << "LABEL at line " << line << std::endl;
+            //std::cout << "LABEL at line " << line << std::endl;
+            DEBUG_PRINT("Label at line" << line)
             symbolTable.addEntity(parser.symbol(), line);
-            std::cout << "Added Label:" << parser.symbol() << std::endl;
         }else{
             line++;
         }
     }
-    std::cout << "End of FIRST PASS\n";
+    //std::cout << "End of FIRST PASS\n";
+    DEBUG_PRINT("End of FIRST PASS")
     parser.reset();
     
     //second pass
-    std::cout << "Second Pass\n";
-    //parser.advance();
+    //std::cout << "Second Pass\n";
+    DEBUG_PRINT("Second Pass")
+
     while(parser.hasMoreCommands()){
         parser.advance();
-        //if(!parser.hasMoreCommands()){
-        //    break;
-        //}
-        std::cout << "pass" << std::endl;
 
         std::string binCommand;
         CMD_TYPE cmd = parser.instructionType();
-        std::cout << cmd << std::endl;
+        //std::cout << cmd << std::endl;
+        DEBUG_PRINT("Instruction Type: " << cmd)
         if (cmd == A_COMMAND){
-            std::cout << "A_COMMAND" << std::endl;
+            //std::cout << "A_COMMAND" << std::endl;
+            DEBUG_PRINT("A_COMMAND")
             binCommand = "0";
             std::string symStr = parser.symbol();
             if(symbolTable.contains(symStr)){
-                std::cout << "SymbolTable Has\n";
+                //std::cout << "SymbolTable Has\n";
+                DEBUG_PRINT("SymbolTable Has")
                 binCommand += num2string(std::to_string(symbolTable.getAddress(symStr)));
             }else if(isdigit(symStr[0])){
-                std::cout << "A COM: Digit\n";
-                std::cout << "Not in Symbol Table\n";
+                //std::cout << "A COM: Digit\n";
+                DEBUG_PRINT("A COM: Digit")
+                //std::cout << "Not in Symbol Table\n";
+                DEBUG_PRINT("Not in Symbol Table")
                 binCommand += num2string(parser.symbol());
             }else{
                 symbolTable.addEntity(symStr);
@@ -79,7 +81,8 @@ int main(int argc, char* argv[]){
 
             binFile << binCommand << std::endl;
         } else if(cmd == C_COMMAND){
-            std::cout << "C_COMMAND" << std::endl;
+            //std::cout << "C_COMMAND" << std::endl;
+            DEBUG_PRINT("C_COMMAND")
             binCommand = "111";
             binCommand += parser.comp();
             binCommand += parser.dest();
@@ -87,19 +90,10 @@ int main(int argc, char* argv[]){
 
             binFile << binCommand << std::endl;
         } else {
-            std::cout << "L_COMMAND" << std::endl;
-            //binCommand = "0";
-            //std::string sym = parser.symbol();
-            //std::string symAddress;
-            //if(symbolTable.contains(sym)){
-            //    symAddress = std::to_string(symbolTable.getAddress(sym));
-            //}
-            //binCommand = "0";
-            //continue;
+            //std::cout << "L_COMMAND" << std::endl;
+            DEBUG_PRINT("L_COMMAND")
         }
 
-        //binFile << binCommand << std::endl;
-        //parser.advance();
     }
 
     

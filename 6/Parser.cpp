@@ -1,29 +1,22 @@
 #include "Parser.hpp"
+#include "debug_util.hpp"
 
 Parser::Parser(const char* inFile){
     asmFile = std::ifstream(inFile);
-    std::cout << "Parser Created!" << std::endl;
+    //std::cout << "Parser Created!" << std::endl;
+    DEBUG_PRINT("Parser Created!")
 }
 
 void Parser::reset(){
     asmFile.clear();
     asmFile.seekg(0, std::ios::beg);
-    std::cout << "Parser file reset\n";
+    //std::cout << "Parser file reset\n";
+    DEBUG_PRINT("Parser file reset")
 }
+
 /*
 *   Are there more commands in the input?
 */
-//bool Parser::hasMoreCommands(){
-//    bool moreCommands = false;
-//
-//    if (asmFile.eof()){
-//        std::cout << "No more commands!" << std::endl;
-//    }else{
-//        std::cout << "Has more commands" << std::endl;
-//        moreCommands = true;
-//    }
-//    return moreCommands;
-//}
 bool Parser::hasMoreCommands(){
     std::streampos originalPos = asmFile.tellg();
     std::string line;
@@ -32,6 +25,8 @@ bool Parser::hasMoreCommands(){
         trim(line);
         if (!line.empty() && line[0] != '/'){
             asmFile.seekg(originalPos); //put the streampos back
+            //std::cout << "CMD: " << line << "\n";
+            DEBUG_PRINT("CMD: " << line)
             return true;
         }
         originalPos = asmFile.tellg(); //otherwise update streampos to current line, this repeats until the next line is a command or EOF
@@ -45,51 +40,11 @@ void Parser::trim(std::string& s){
                 }), s.end());
 }
 
-bool Parser::isComment(const std::string& str){
-    if (str.at(0) == '/'){
-        std::cout << "Is Comment\n";
-        return true;
-    } else {
-        return false;
-    }
-}
 
-/*
-*
-*/
 void Parser::advance(){
-    bool isCommand = false;
-
-    if(asmFile.is_open()){
-        while(!isCommand){
-            if (hasMoreCommands()){
-                
-                std::getline(asmFile, currentCommand);
-                std::cout << "Current Line[" << currentCommand << "]" << std::endl;
-                currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
-                    return c == '\r' || c == '\n' || c == ' ';
-                }), currentCommand.end());
-                std::cout << "Clean Line[" << currentCommand << "]" << std::endl;
-                std::cout << "Is Empty? " << currentCommand.empty() << std::endl;
-                if(currentCommand.empty() || isComment(currentCommand)){
-                    isCommand = false;
-                    std::cout << "Is not a command\n";
-                }else{
-                    isCommand = true;
-                    std::cout << "is a command\n";
-                }
-            }else{
-                return;
-            }
-        }
-    } else{
-        std::cerr << "Failed to read file." << std::endl;
-    }
-
-    
-    std::cout << "Current COMMAND: " << currentCommand << std::endl;
+    std::getline(asmFile, currentCommand);
+    trim(currentCommand);
 }
-
 
 /*
 *   This assumes all commands are syntactically correct. 
@@ -123,12 +78,8 @@ std::string Parser::symbol()
     char initChar = currentCommand.at(0);
     if(instructionType() == A_COMMAND){
         symStr = currentCommand.substr(1);
-        
-        //symBinary += num2binary(currentCommand.substr(1));
     } else if (instructionType() == L_COMMAND){
-        std::cout << "symbol size: " << currentCommand.size() << std::endl;
         symStr = currentCommand.substr(1, currentCommand.size() - 2);
-        //num2binary(currentCommand.substr(1, 14));
     }
     
     return symStr;
@@ -150,7 +101,8 @@ std::string Parser::dest()
         sub = "";
     }
 
-    std::cout << "Dest Sub: " << sub << std::endl;
+    //std::cout << "Dest Sub: " << sub << std::endl;
+    DEBUG_PRINT("Dest Sub: " << sub)
     return Code::dest(sub);
 }
 
@@ -162,10 +114,6 @@ std::string Parser::dest()
 std::string Parser::comp()
 {
     std::string sub;
-    
-    //currentCommand.erase(std::remove_if(currentCommand.begin(), currentCommand.end(), [](unsigned char c) {
-    //    return c == '\r' || c == '\n';
-    //}), currentCommand.end());
 
     auto eq_idx = currentCommand.find('=');
     auto sc_idx = currentCommand.find(';');
@@ -173,14 +121,17 @@ std::string Parser::comp()
     size_t start = (eq_idx != currentCommand.npos) ? eq_idx + 1 : 0;
     size_t end = (sc_idx != currentCommand.npos) ? sc_idx : currentCommand.length();
 
-    //std::cout << "start Idx: " << dest_idx << "\t end Idx: " << jump_idx - dest_idx << std::endl;
     sub = currentCommand.substr(start, end);
 
-    for(char c : sub){
-        std::cout << "Char: '" << c << "' ASCII: " << static_cast<int>(c) << std::endl;
-    }
-    std::cout << "Length: " << sub.length() << std::endl;
-    std::cout << "Comp Sub: [" << sub  << "]" << std::endl;
+    #ifndef NDEBUG
+        for(char c : sub){
+            std::cout << "Char: '" << c << "' ASCII: " << static_cast<int>(c) << std::endl;
+        }
+    #endif
+    //std::cout << "Length: " << sub.length() << std::endl;
+    DEBUG_PRINT("Length: " << sub.length())
+    //std::cout << "Comp Sub: [" << sub  << "]" << std::endl;
+    DEBUG_PRINT("Comp Sub: [" << sub << "]")
 
     return Code::comp(sub);
 }
@@ -201,10 +152,14 @@ std::string Parser::jump()
         sub = "";
     }
 
-    for(char c : sub){
-        std::cout << "Char: '" << c << "' ASCII: " << static_cast<int>(c) << std::endl;
-    }
-    std::cout << "Length: " << sub.length() << std::endl;
-    std::cout << "Jump Sub: " << sub << std::endl;
+    #ifndef NDEBUG
+        for(char c : sub){
+            std::cout << "Char: '" << c << "' ASCII: " << static_cast<int>(c) << std::endl;
+        }
+    #endif
+    //std::cout << "Length: " << sub.length() << std::endl;
+    DEBUG_PRINT("Length: " << sub.length())
+    //std::cout << "Jump Sub: " << sub << std::endl;
+    DEBUG_PRINT("Jump Sub: " << sub)
     return Code::jump(sub);
 }
